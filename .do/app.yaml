@@ -1,0 +1,31 @@
+name: glamcart
+services:
+- name: frontend
+  github:
+    repo: ayeshasnoorr44/glamcart-frontend
+    branch: main
+  build_command: npm ci --legacy-peer-deps && npm run build
+  run_command: npm start
+  http_port: 3000
+  envs:
+  - key: NEXT_PUBLIC_API_URL
+    value: https://glamcart-backend.ondigitalocean.app
+  - key: NODE_ENV
+    value: production
+
+- name: backend
+  github:
+    repo: ayeshasnoorr44/glamcart-backend
+    branch: main
+  build_command: npm ci && npm run build
+  run_command: npm start
+  http_port: 5000
+  envs:
+  - key: MONGODB_URI
+    value: ${MONGODB_URI}
+  - key: NODE_ENV
+    value: production
+  - key: CORS_ORIGIN
+    value: https://glamcart-frontend.ondigitalocean.app
+  - key: PORT
+    value: 5000

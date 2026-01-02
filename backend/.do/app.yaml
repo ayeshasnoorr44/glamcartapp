@@ -14,3 +14,5 @@ services:
     value: production
   - key: CORS_ORIGIN
     value: https://glamcart-frontend.ondigitalocean.app
+  - key: PORT
+    value: 5000
