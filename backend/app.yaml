@@ -1,0 +1,17 @@
+name: glamcart-backend
+services:
+  - name: backend
+    github:
+      repo: YOUR_USERNAME/glamcart-backend
+      branch: main
+    build_command: npm install && npm run build
+    run_command: npm start
+    http_port: 5000
+    source_dir: ./
+    envs:
+      - key: MONGODB_URI
+        value: ${MONGODB_URI}
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        value: https://glamcart-frontend.ondigitalocean.app
