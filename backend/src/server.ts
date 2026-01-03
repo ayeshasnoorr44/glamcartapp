@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true,
+  origin: "https://clownfish-app-pn8ie.ondigitalocean.app",
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
