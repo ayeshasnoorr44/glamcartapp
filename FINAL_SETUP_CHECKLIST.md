@@ -1,13 +1,29 @@
-# MongoDB + DigitalOcean Setup Checklist
+# Production Readiness Checklist
 
-## ✅ Completed Tasks
+## ✅ Code Quality
 
-- [x] Backend code configured to use `process.env.MONGODB_URI`
-- [x] Frontend configured to use `process.env.NEXT_PUBLIC_API_URL`
-- [x] Backend `.env` file has correct MongoDB URI (local testing)
-- [x] Frontend `.env.local` configured for local testing
-- [x] GitHub workflow passes `MONGODB_URI` secret to Docker
-- [x] `.gitignore` protects sensitive `.env` files
+### Frontend
+- [x] Products page wrapped in `<Suspense>` (fixes Next.js 15 build)
+- [x] Uses `NEXT_PUBLIC_API_URL` for backend communication
+- [x] `.env.local` configured for local development
+- [x] `.gitignore` protects sensitive files
+- [x] GitHub Actions workflow configured (frontend-deploy.yml)
+
+### Backend
+- [x] Uses `process.env.PORT` with fallback to 5000
+- [x] Uses `process.env.MONGODB_URI` for database
+- [x] MongoDB connection configured in `/config/database.ts`
+- [x] CORS configured with `process.env.CORS_ORIGIN`
+- [x] `.env` file in `.gitignore`
+- [x] GitHub Actions workflow configured (backend-deploy.yml)
+- [x] Dockerfile builds and runs correctly
+
+### Security
+- [x] No hardcoded credentials in code
+- [x] Credentials stored in GitHub Secrets only
+- [x] `.env` files protected by `.gitignore`
+- [x] Private SSH key never exposed
+- [x] MongoDB password not visible in code
 
 ## 📋 Next Steps (In Order)
 
