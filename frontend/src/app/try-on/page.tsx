@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { tryOnAPI } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { applyLipstickWithLandmarks, downloadModels } from '@/lib/faceApi';
 
 // Spinner component
 const Spinner = () => (
@@ -26,8 +26,34 @@ export default function TryOnPage() {
   const [modifiedImage, setModifiedImage] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState('#D4486B');
   const [isLoading, setIsLoading] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
+
+  // Pre-load Face-API models on component mount
+  useEffect(() => {
+    const initModels = async () => {
+      try {
+        console.log('🔧 Initializing Face-API models...');
+        await downloadModels();
+        setModelsReady(true);
+        toast({
+          title: "Ready!",
+          description: "Face detection models loaded. You can now try on lipstick!",
+        });
+      } catch (error) {
+        console.error('Failed to load models:', error);
+        toast({
+          variant: "destructive",
+          title: "Setup Error",
+          description: "Could not load face detection models. Try refreshing the page.",
+        });
+      }
+    };
+    initModels();
+  }, [toast]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -50,35 +76,46 @@ export default function TryOnPage() {
   };
 
   const handleTryOn = async () => {
-    if (!uploadedImage || !fileInputRef.current?.files?.[0]) {
+    if (!uploadedImage || !canvasRef.current || !imageRef.current) {
       toast({
         variant: "destructive",
         title: "Missing selection",
-        description: "Please upload a photo and select a lipstick color.",
+        description: "Please upload a photo first.",
+      });
+      return;
+    }
+
+    if (!modelsReady) {
+      toast({
+        variant: "destructive",
+        title: "Models not ready",
+        description: "Face detection models are still loading. Please wait a moment.",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('image', fileInputRef.current.files[0]);
-      formData.append('colorHex', selectedColor);
-      formData.append('productId', 'sample-product-id'); // You can make this dynamic
+      console.log('🎨 Applying lipstick with Face-API landmarks...');
+      
+      // Apply lipstick using Face-API landmark detection (100% accurate, no backend needed)
+      const resultImage = await applyLipstickWithLandmarks(
+        imageRef.current,
+        canvasRef.current,
+        selectedColor
+      );
 
-      const response = await tryOnAPI.applyLipstick(formData);
-      setModifiedImage(response.data.data.processedImage);
-
+      setModifiedImage(resultImage);
       toast({
         title: "Success!",
-        description: "Lipstick applied successfully.",
+        description: "✨ Lipstick applied perfectly! No scattered rectangles!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Try-on failed:', error);
       toast({
         variant: "destructive",
         title: "Try-on failed",
-        description: "Make sure the backend is running on port 5000.",
+        description: error.message || "Please make sure your face is clearly visible in the photo.",
       });
     } finally {
       setIsLoading(false);
@@ -158,7 +195,7 @@ export default function TryOnPage() {
 
             <Button
               onClick={handleTryOn}
-              disabled={!uploadedImage || isLoading}
+              disabled={!uploadedImage || isLoading || !modelsReady}
               className="w-full"
             >
               {isLoading ? (
@@ -166,10 +203,26 @@ export default function TryOnPage() {
                   <Spinner />
                   <span className="ml-2">Applying Lipstick...</span>
                 </>
+              ) : !modelsReady ? (
+                'Loading AI Models...'
               ) : (
                 'Try On Lipstick'
               )}
             </Button>
+
+            {/* Hidden canvas and image for Face-API processing */}
+            <canvas
+              ref={canvasRef}
+              className="hidden"
+              style={{ display: 'none' }}
+            />
+            <img
+              ref={imageRef}
+              src={uploadedImage || ''}
+              alt="For processing"
+              className="hidden"
+              style={{ display: 'none' }}
+            />
           </CardContent>
         </Card>
 

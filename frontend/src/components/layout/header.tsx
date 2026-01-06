@@ -6,9 +6,16 @@ import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, ShoppingBag, Sparkles, User, LogOut } from "lucide-react";
+import { Menu, Search, ShoppingBag, Sparkles, User, LogOut, ChevronDown } from "lucide-react";
 import { useCart } from "@/context/cart-context";
-import { logout, getUser } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 function SearchBar() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,14 +53,86 @@ const navLinks = [
 
 export function Header() {
   const { cart } = useCart();
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Check authentication on component mount
   useEffect(() => {
-    // Get user from localStorage on mount
-    const userData = getUser();
-    setUser(userData);
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+          console.log('✅ User loaded from localStorage:', userData);
+        } catch (e) {
+          console.error('Failed to parse user data:', e);
+          setUser(null);
+        }
+      }
+    }
   }, []);
+
+  // Listen for login event from other components
+  useEffect(() => {
+    const handleUserLogin = () => {
+      console.log('👂 Login event detected');
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+          console.log('✅ Header updated with user:', userData);
+        } catch (e) {
+          console.error('Failed to parse user data:', e);
+        }
+      }
+    };
+
+    window.addEventListener('user-logged-in', handleUserLogin);
+    return () => window.removeEventListener('user-logged-in', handleUserLogin);
+  }, []);
+
+  // Listen for storage changes (e.g., from other tabs)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    router.push('/login');
+  };
+
+  // Don't render user info until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-lg">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold font-headline">Glamify</span>
+          </Link>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-lg">
@@ -78,20 +157,36 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <SearchBar />
-          {user ? (
+          {user && isAuthenticated() ? (
             <>
-              <div className="text-sm hidden md:block text-muted-foreground">
-                {user.name}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={logout}
-                aria-label="Logout"
-                title="Logout"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
+              {/* User Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    <span className="hidden sm:inline text-sm">{user.name}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-semibold">Welcome, {user.name}!</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cart">Shopping Cart</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button asChild variant="ghost" size="icon" aria-label="Login">
@@ -134,6 +229,25 @@ export function Header() {
                       </Link>
                     ))}
                   </nav>
+                  {user && isAuthenticated() ? (
+                    <>
+                      <div className="border-t pt-4">
+                        <p className="font-semibold">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <Button 
+                          variant="destructive" 
+                          className="mt-4 w-full"
+                          onClick={handleLogout}
+                        >
+                          Logout
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <Button asChild className="w-full">
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
