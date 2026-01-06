@@ -21,7 +21,7 @@ jobs:
         script: |
           cd /root/glamcart-backend
           git pull origin main
-          npm install
+          npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
           pm2 restart glamcart-api --update-env || pm2 start dist/server.js --name "glamcart-api"
           pm2 save
