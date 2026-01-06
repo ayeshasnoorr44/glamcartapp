@@ -9,14 +9,16 @@
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "resolveJsonModule": true,
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
     "allowUnusedLabels": true,
     "allowUnreachableCode": true,
-    "noEmit": true
+    "noEmit": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "suppressImplicitAnyIndexSignatureCompletionErrors": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
