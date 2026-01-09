@@ -1,24 +1,18 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "ES2020",
     "lib": ["ES2020"],
     "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "sourceMap": true,
-    "noImplicitAny": false,
-    "allowUnusedLabels": true,
-    "allowUnreachableCode": true,
-    "noEmit": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "suppressImplicitAnyIndexSignatureCompletionErrors": true
+    "sourceMap": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

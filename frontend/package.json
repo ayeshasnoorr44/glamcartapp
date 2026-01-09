@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint || true",
-    "typecheck": "tsc --noEmit || true",
-    "install:fast": "npm install --legacy-peer-deps --no-audit --no-fund --ignore-scripts"
+    "typecheck": "tsc --noEmit || true"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
@@ -59,7 +58,7 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=10.0.0"
+    "node": "20.x",
+    "npm": "11.x"
   }
 }

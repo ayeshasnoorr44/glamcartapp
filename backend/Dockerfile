@@ -1,24 +1,11 @@
 FROM node:20-alpine
 
-# Install canvas dependencies and build tools
-RUN apk add --no-cache \
-    build-base \
-    g++ \
-    make \
-    python3 \
-    cairo-dev \
-    pango-dev \
-    jpeg-dev \
-    giflib-dev \
-    librsvg-dev \
-    pixman-dev
-
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (canvas can now build)
+# Install dependencies
 RUN npm ci
 
 # Copy source code
